@@ -1,13 +1,14 @@
 package main
 
 import (
-	"os"
-	"os/exec"
 	"bufio"
-	"log"
 	"flag"
 	"fmt"
 	"io"
+	"log"
+	"os"
+	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -88,7 +89,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	}
 
 	/* padding length */
-	Padding := AddrPadding - len(Address)
+	Padding := AddrPadding - len(Address) + 1
 	Stdout := bufio.NewReader(stdout)
 	Stderr := bufio.NewReader(stderr)
 
@@ -121,10 +122,14 @@ func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 	}
 	Reader := bufio.NewReader(file)
 	for Line, err := Reader.ReadString('\n'); err != io.EOF; Line, err = Reader.ReadString('\n') {
-		if AddrPadding < len(Line) {
-			AddrPadding = len(Line)
+		SLine := strings.TrimSpace(Line)
+		if SLine == "" || strings.HasPrefix(SLine, "#") {
+			continue
 		}
-		ServerList = append(ServerList, Line[:len(Line)-1])
+		if AddrPadding < len(SLine) {
+			AddrPadding = len(SLine)
+		}
+		ServerList = append(ServerList, SLine)
 	}
 	return
 }
@@ -168,7 +173,6 @@ func main() {
 	fCommand = flag.Args()[0]
 	/* read server names from file */
 	AddrPadding, ServerList := LoadServerList(fFile)
-	fmt.Println(ServerList[0])
 
 	/* no point to display more processes than  */
 	if fProcs > len(ServerList) {
