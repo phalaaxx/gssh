@@ -16,8 +16,11 @@ import (
 
 /* ssh client group */
 type SshGroup struct {
-	mu      sync.Mutex
-	active  int
+	mu       sync.Mutex
+	/* statistics */
+	Active   int
+	Total    int
+	Complete int
 }
 
 
@@ -26,7 +29,7 @@ func (s *SshGroup) Wait(n int) {
 	var active int
 	for {
 		s.mu.Lock()
-		active = s.active
+		active = s.Active
 		s.mu.Unlock()
 
 		if active == 0 || active < n {
@@ -62,7 +65,8 @@ func PrintOutput(Std *bufio.Reader, Addr string, Padding int, Color int) {
 func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command string) {
 	defer func() {
 		s.mu.Lock()
-		s.active--
+		s.Active--
+		s.Complete++
 		s.mu.Unlock()
 	}()
 
@@ -188,11 +192,15 @@ func main() {
 	fmt.Printf("  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
 	/* make new group and spawn ssh processes */
-	ssh := &SshGroup{}
+	ssh := &SshGroup{
+		Active: 0,
+		Total: len(ServerList),
+		Complete: 0,
+		}
 	for _, Server := range ServerList {
 		/* run command */
 		ssh.mu.Lock()
-		ssh.active++
+		ssh.Active++
 		ssh.mu.Unlock()
 		go ssh.Command(
 			fUser,
