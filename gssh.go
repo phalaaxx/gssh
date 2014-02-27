@@ -18,6 +18,7 @@ import (
 type SshGroup struct {
 	/* mutex */
 	stMu     sync.Mutex
+	prMu     sync.Mutex
 	/* statistics */
 	Active   int
 	Total    int
@@ -52,12 +53,14 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 			log.Fatal(err)
 		}
 
+		s.prMu.Lock()
 		fmt.Printf("%*s%s %s->\033[0m %s",
 			Padding,
 			" ",
 			Addr,
 			fmt.Sprintf("\033[01;%dm", Color),
 			line)
+		s.prMu.Unlock()
 	}
 }
 
