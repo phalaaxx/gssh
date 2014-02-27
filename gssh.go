@@ -246,6 +246,9 @@ func main() {
 			Server,
 			AddrPadding,
 			fCommand)
+		/* show progless after new process spawn */
+		ssh.ClearProgress()
+		ssh.PrintProgress()
 		if i < ssh.Total {
 			/* time delay and max procs wait between spawn */
 			time.Sleep(time.Duration(fDelay) * time.Millisecond)
