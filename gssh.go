@@ -207,25 +207,27 @@ func main() {
 	/* read server names from file */
 	AddrPadding, ServerList := LoadServerList(fFile)
 
+	/* make new group */
+	ssh := &SshGroup{
+		Active: 0,
+		Total: len(ServerList),
+		Complete: 0,
+		}
+
 	/* no point to display more processes than  */
-	if fProcs > len(ServerList) {
-		fProcs = len(ServerList)
+	if fProcs > ssh.Total {
+		fProcs = ssh.Total
 	}
 
 	/* print heading text */
 	fmt.Println("gssh - group ssh, ver. 0.2")
 	fmt.Println("(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Println()
-	fmt.Printf("  [*] read (%d) hosts from the list\n", len(ServerList))
+	fmt.Printf("  [*] read (%d) hosts from the list\n", ssh.Total)
 	fmt.Printf("  [*] executing '%s' as user '%s'\n", fCommand, fUser)
 	fmt.Printf("  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
-	/* make new group and spawn ssh processes */
-	ssh := &SshGroup{
-		Active: 0,
-		Total: len(ServerList),
-		Complete: 0,
-		}
+	/* spawn ssh processes */
 	for _, Server := range ServerList {
 		/* run command */
 		ssh.stMu.Lock()
@@ -245,5 +247,5 @@ func main() {
 	ssh.ClearProgress()
 
 	fmt.Println()
-	fmt.Printf("  Done. %d hosts processed.\n", len(ServerList))
+	fmt.Printf("  Done. %d hosts processed.\n", ssh.Total)
 }
