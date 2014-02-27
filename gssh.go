@@ -99,11 +99,17 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		s.PrintProgress()
 	}()
 
+	/* hostkey checking from commandline arguments */
+	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
+	if ! fStrict {
+		StrictHostKeyChecking = "StrictHostKeyChecking=no"
+	}
+
 	cmd := exec.Command("env",
 		"ssh",
 		"-A",
 		"-o", "PasswordAuthentication=no",
-		"-o", "StrictHostKeyChecking=no",
+		"-o", StrictHostKeyChecking,
 		"-o", "NumberOfPasswordPrompts=1",
 		"-o", "GSSAPIAuthentication=no",
 		"-o", "HostbasedAuthentication=no",
@@ -174,6 +180,7 @@ var fUser string
 var fDelay int
 var fProcs int
 var fFile string
+var fStrict bool
 //var fOutDir string
 //var fMacro string
 
@@ -185,6 +192,7 @@ func init() {
 	flag.StringVar(&fFile, "file", "", "file with the list of hosts")
 	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
+	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
 	//flag.StringVar(&fOutDir, "outdir", "", "save the remote output in this directory")
 	//flag.StringVar(&fMacro, "macro", "", "run pre-defined commands macro")
 }
