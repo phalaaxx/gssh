@@ -41,7 +41,7 @@ func (s *SshGroup) Wait(n int) {
 
 
 /* print stdout/stderr with color */
-func PrintOutput(Std *bufio.Reader, Addr string, Padding int, Color int) {
+func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Color int) {
 	for {
 		line, err := Std.ReadString('\n')
 		if err == io.EOF {
@@ -104,12 +104,12 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	w.Add(2)
 
 	go func() {
-		PrintOutput(Stdout, Address, Padding, 32)
+		s.PrintOutput(Stdout, Address, Padding, 32)
 		w.Done()
 	}()
 
 	go func() {
-		PrintOutput(Stderr, Address, Padding, 31)
+		s.PrintOutput(Stderr, Address, Padding, 31)
 		w.Done()
 	}()
 
