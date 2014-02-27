@@ -16,7 +16,8 @@ import (
 
 /* ssh client group */
 type SshGroup struct {
-	mu       sync.Mutex
+	/* mutex */
+	stMu     sync.Mutex
 	/* statistics */
 	Active   int
 	Total    int
@@ -28,9 +29,9 @@ type SshGroup struct {
 func (s *SshGroup) Wait(n int) {
 	var active int
 	for {
-		s.mu.Lock()
+		s.stMu.Lock()
 		active = s.Active
-		s.mu.Unlock()
+		s.stMu.Unlock()
 
 		if active == 0 || active < n {
 			break
@@ -64,10 +65,10 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 /* connect to remote server */
 func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command string) {
 	defer func() {
-		s.mu.Lock()
+		s.stMu.Lock()
 		s.Active--
 		s.Complete++
-		s.mu.Unlock()
+		s.stMu.Unlock()
 	}()
 
 	cmd := exec.Command("env",
@@ -199,9 +200,9 @@ func main() {
 		}
 	for _, Server := range ServerList {
 		/* run command */
-		ssh.mu.Lock()
+		ssh.stMu.Lock()
 		ssh.Active++
-		ssh.mu.Unlock()
+		ssh.stMu.Unlock()
 		go ssh.Command(
 			fUser,
 			Server,
