@@ -42,6 +42,27 @@ func (s *SshGroup) Wait(n int) {
 }
 
 
+/* clear progress line */
+func (s *SshGroup) ClearProgress() {
+	s.prMu.Lock()
+	fmt.Printf("\r%*s\r",
+		27,
+		" ")
+	s.prMu.Unlock()
+}
+
+
+/* print progress line */
+func (s *SshGroup) PrintProgress() {
+	s.prMu.Lock()
+	fmt.Printf("[%d/%d] %.2f%% complete",
+		s.Complete,
+		s.Total,
+		float64(s.Complete) * float64(100) / float64(s.Total))
+	s.prMu.Unlock()
+}
+
+
 /* print stdout/stderr with color */
 func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Color int) {
 	for {
@@ -53,6 +74,7 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 			log.Fatal(err)
 		}
 
+		s.ClearProgress()
 		s.prMu.Lock()
 		fmt.Printf("%*s%s %s->\033[0m %s",
 			Padding,
@@ -61,6 +83,7 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 			fmt.Sprintf("\033[01;%dm", Color),
 			line)
 		s.prMu.Unlock()
+		s.PrintProgress()
 	}
 }
 
@@ -72,6 +95,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		s.Active--
 		s.Complete++
 		s.stMu.Unlock()
+		s.ClearProgress()
+		s.PrintProgress()
 	}()
 
 	cmd := exec.Command("env",
@@ -188,7 +213,7 @@ func main() {
 	}
 
 	/* print heading text */
-	fmt.Println("gssh - group ssh, ver. 0.1")
+	fmt.Println("gssh - group ssh, ver. 0.2")
 	fmt.Println("(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Println()
 	fmt.Printf("  [*] read (%d) hosts from the list\n", len(ServerList))
@@ -217,6 +242,7 @@ func main() {
 	}
 	/* wait for ssh processes to exit */
 	ssh.Wait(0)
+	ssh.ClearProgress()
 
 	fmt.Println()
 	fmt.Printf("  Done. %d hosts processed.\n", len(ServerList))
