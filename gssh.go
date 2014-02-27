@@ -236,7 +236,7 @@ func main() {
 	fmt.Printf("  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
 	/* spawn ssh processes */
-	for _, Server := range ServerList {
+	for i, Server := range ServerList {
 		/* run command */
 		ssh.stMu.Lock()
 		ssh.Active++
@@ -246,9 +246,11 @@ func main() {
 			Server,
 			AddrPadding,
 			fCommand)
-		/* time delay and max procs wait between spawn */
-		time.Sleep(time.Duration(fDelay) * time.Millisecond)
-		ssh.Wait(fProcs)
+		if i < ssh.Total {
+			/* time delay and max procs wait between spawn */
+			time.Sleep(time.Duration(fDelay) * time.Millisecond)
+			ssh.Wait(fProcs)
+		}
 	}
 	/* wait for ssh processes to exit */
 	ssh.Wait(0)
