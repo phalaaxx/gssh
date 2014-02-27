@@ -43,5 +43,13 @@ A full list of currently supported arguments can be obtained with the -h option:
 	  -delay=10: delay between each ssh fork (default 10 msec)
 	  -file="": file with the list of hosts
 	  -procs=500: number of parallel ssh processes (default: 500)
+	  -strict=true: strict ssh fingerprint checking
 	  -user="root": ssh login as this username
 
+Options:
+
+  * **delay** - this is the time in miliseconds to wait between spawning next process
+  * **file** - name of a text file containing list of servers; lines starting with # and empty lines are ignored
+  * **procs** - maximum number of processes to spawn; if there are more servers then procs number - 
+  * **strict** - specify wether to use strict checking or not; accepted values are *true* or *false*
+  * **user** - username to use for ssh login
