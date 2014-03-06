@@ -252,11 +252,14 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		/* make log writer */
+		LogWriter = bufio.NewWriter(file)
+
+		/* flush and close log file at end of program */
 		defer func() {
 			LogWriter.Flush()
 			file.Close()
 		}()
-		LogWriter = bufio.NewWriter(file)
 	}
 
 	/* print heading text */
