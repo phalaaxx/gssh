@@ -42,6 +42,7 @@ A full list of currently supported arguments can be obtained with the -h option:
 	Usage of ./gssh:
 	  -delay=10: delay between each ssh fork (default 10 msec)
 	  -file="": file with the list of hosts
+	  -logfile="": save remote output in the file specified
 	  -procs=500: number of parallel ssh processes (default: 500)
 	  -strict=true: strict ssh fingerprint checking
 	  -user="root": ssh login as this username
