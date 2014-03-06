@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -247,20 +249,25 @@ func main() {
 	}
 
 	/* prepare log file */
-	if fLogFile != "" {
-		file, err := os.Create(fLogFile)
+	if fLogFile == "" {
+		usr, err := user.Current()
 		if err != nil {
 			log.Fatal(err)
 		}
-		/* make log writer */
-		LogWriter = bufio.NewWriter(file)
-
-		/* flush and close log file at end of program */
-		defer func() {
-			LogWriter.Flush()
-			file.Close()
-		}()
+		fLogFile = path.Join(usr.HomeDir, ".gssh.log")
 	}
+	file, err := os.Create(fLogFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	/* make log writer */
+	LogWriter = bufio.NewWriter(file)
+
+	/* flush and close log file at end of program */
+	defer func() {
+		LogWriter.Flush()
+		file.Close()
+	}()
 
 	/* print heading text */
 	fmt.Println("gssh - group ssh, ver. 0.3")
