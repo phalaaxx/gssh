@@ -110,7 +110,6 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		"-A",
 		"-o", "PasswordAuthentication=no",
 		"-o", StrictHostKeyChecking,
-		"-o", "NumberOfPasswordPrompts=1",
 		"-o", "GSSAPIAuthentication=no",
 		"-o", "HostbasedAuthentication=no",
 		"-l", Username,
