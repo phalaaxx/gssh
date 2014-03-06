@@ -76,12 +76,23 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 
 		s.ClearProgress()
 		s.prMu.Lock()
+		/* write output to stdout */
 		fmt.Printf("%*s%s %s->\033[0m %s",
 			Padding,
 			" ",
 			Addr,
 			fmt.Sprintf("\033[01;%dm", Color),
 			line)
+		/* write output to log file */
+		if LogWriter != nil {
+			fmt.Fprintf(
+				LogWriter,
+				"%*s%s -> %s",
+				Padding,
+				" ",
+				Addr,
+				line)
+		}
 		s.prMu.Unlock()
 		s.PrintProgress()
 	}
@@ -180,9 +191,10 @@ var fDelay int
 var fProcs int
 var fFile string
 var fStrict bool
-//var fOutDir string
+var fLogFile string
 //var fMacro string
 
+var LogWriter *bufio.Writer
 
 /* initialize */
 func init() {
@@ -192,7 +204,7 @@ func init() {
 	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
-	//flag.StringVar(&fOutDir, "outdir", "", "save the remote output in this directory")
+	flag.StringVar(&fLogFile, "logfile", "", "save remote output in the file specified")
 	//flag.StringVar(&fMacro, "macro", "", "run pre-defined commands macro")
 }
 
@@ -224,6 +236,19 @@ func main() {
 	/* no point to display more processes than  */
 	if fProcs > ssh.Total {
 		fProcs = ssh.Total
+	}
+
+	/* prepare log file */
+	if fLogFile != "" {
+		file, err := os.Create(fLogFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer func() {
+			LogWriter.Flush()
+			file.Close()
+		}()
+		LogWriter = bufio.NewWriter(file)
 	}
 
 	/* print heading text */
