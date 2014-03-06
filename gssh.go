@@ -64,7 +64,7 @@ func (s *SshGroup) PrintProgress() {
 
 
 /* print stdout/stderr with color */
-func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Color int) {
+func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Error bool) {
 	for {
 		line, err := Std.ReadString('\n')
 		if err == io.EOF {
@@ -74,20 +74,28 @@ func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Colo
 			log.Fatal(err)
 		}
 
+		/* output templates */
+		Template := "%*s%s \033[01;32m->\033[0m %s"
+		LogTemplate := "%*s%s -> %s"
+		if Error {
+			Template = "%*s%s \033[01;31m=>\033[0m %s"
+			LogTemplate = "%*s%s => %s"
+		}
+
 		s.ClearProgress()
 		s.prMu.Lock()
 		/* write output to stdout */
-		fmt.Printf("%*s%s %s->\033[0m %s",
+		fmt.Printf(
+			Template,
 			Padding,
 			" ",
 			Addr,
-			fmt.Sprintf("\033[01;%dm", Color),
 			line)
 		/* write output to log file */
 		if LogWriter != nil {
 			fmt.Fprintf(
 				LogWriter,
-				"%*s%s -> %s",
+				LogTemplate,
 				Padding,
 				" ",
 				Addr,
@@ -149,12 +157,12 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	w.Add(2)
 
 	go func() {
-		s.PrintOutput(Stdout, Address, Padding, 32)
+		s.PrintOutput(Stdout, Address, Padding, false)
 		w.Done()
 	}()
 
 	go func() {
-		s.PrintOutput(Stderr, Address, Padding, 31)
+		s.PrintOutput(Stderr, Address, Padding, true)
 		w.Done()
 	}()
 
