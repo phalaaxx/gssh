@@ -195,7 +195,6 @@ var fProcs int
 var fFile string
 var fStrict bool
 var fLogFile string
-//var fMacro string
 
 var LogWriter *bufio.Writer
 
@@ -208,7 +207,6 @@ func init() {
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
 	flag.StringVar(&fLogFile, "logfile", "", "save remote output in the file specified")
-	//flag.StringVar(&fMacro, "macro", "", "run pre-defined commands macro")
 }
 
 
