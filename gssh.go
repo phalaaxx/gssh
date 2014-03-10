@@ -132,8 +132,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		w.Done()
 	}
 
-	go PrintOutput(Stdout, "%*s%s \033[01;32m->\033[0m %s")
-	go PrintOutput(Stderr, "%*s%s \033[01;31m=>\033[0m %s")
+	go PrintOutput(Stdout, Template)
+	go PrintOutput(Stderr, ErrTemplate)
 
 	w.Wait()
 
@@ -168,6 +168,10 @@ func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 }
 
 /* global variables */
+var Template = ""
+var ErrTemplate = ""
+
+/* commandline arguments */
 var fCommand string
 var fUser string
 var fDelay int
@@ -184,6 +188,10 @@ func init() {
 	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
+
+	/* initialize output template strings */
+	Template    = "%*s%s \033[01;32m->\033[0m %s"
+	ErrTemplate = "%*s%s \033[01;31m=>\033[0m %s"
 }
 
 /* main program */
