@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"os/user"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -128,16 +126,6 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 				" ",
 				Address,
 				line)
-			/* write output to log file */
-			if LogWriter != nil {
-				fmt.Fprintf(
-					LogWriter,
-					LogTemplate,
-					Padding,
-					" ",
-					Address,
-					line)
-			}
 			s.prMu.Unlock()
 			s.PrintProgress()
 		}
@@ -186,9 +174,7 @@ var fDelay int
 var fProcs int
 var fFile string
 var fStrict bool
-var fLogFile string
 
-var LogWriter *bufio.Writer
 
 /* initialize */
 func init() {
@@ -198,7 +184,6 @@ func init() {
 	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
-	flag.StringVar(&fLogFile, "logfile", "", "save remote output in the file specified")
 }
 
 /* main program */
@@ -229,27 +214,6 @@ func main() {
 	if fProcs > ssh.Total {
 		fProcs = ssh.Total
 	}
-
-	/* prepare log file */
-	if fLogFile == "" {
-		usr, err := user.Current()
-		if err != nil {
-			log.Fatal(err)
-		}
-		fLogFile = path.Join(usr.HomeDir, ".gssh.log")
-	}
-	file, err := os.Create(fLogFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	/* make log writer */
-	LogWriter = bufio.NewWriter(file)
-
-	/* flush and close log file at end of program */
-	defer func() {
-		LogWriter.Flush()
-		file.Close()
-	}()
 
 	/* print heading text */
 	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.3")
