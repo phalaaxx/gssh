@@ -65,50 +65,6 @@ func (s *SshGroup) PrintProgress() {
 }
 
 
-/* print stdout/stderr with color */
-func (s *SshGroup) PrintOutput(Std *bufio.Reader, Addr string, Padding int, Error bool) {
-	for {
-		line, err := Std.ReadString('\n')
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		/* output templates */
-		Template := "%*s%s \033[01;32m->\033[0m %s"
-		LogTemplate := "%*s%s -> %s"
-		if Error {
-			Template = "%*s%s \033[01;31m=>\033[0m %s"
-			LogTemplate = "%*s%s => %s"
-		}
-
-		s.ClearProgress()
-		s.prMu.Lock()
-		/* write output to stdout */
-		fmt.Printf(
-			Template,
-			Padding,
-			" ",
-			Addr,
-			line)
-		/* write output to log file */
-		if LogWriter != nil {
-			fmt.Fprintf(
-				LogWriter,
-				LogTemplate,
-				Padding,
-				" ",
-				Addr,
-				line)
-		}
-		s.prMu.Unlock()
-		s.PrintProgress()
-	}
-}
-
-
 /* connect to remote server */
 func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command string) {
 	defer func() {
@@ -158,15 +114,44 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	var w sync.WaitGroup
 	w.Add(2)
 
-	go func() {
-		s.PrintOutput(Stdout, Address, Padding, false)
-		w.Done()
-	}()
 
-	go func() {
-		s.PrintOutput(Stderr, Address, Padding, true)
+	PrintOutput := func(Std *bufio.Reader, Template, LogTemplate string) {
+		for {
+			line, err := Std.ReadString('\n')
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			s.ClearProgress()
+			s.prMu.Lock()
+			/* write output to stdout */
+			fmt.Printf(
+				Template,
+				Padding,
+				" ",
+				Address,
+				line)
+			/* write output to log file */
+			if LogWriter != nil {
+				fmt.Fprintf(
+					LogWriter,
+					LogTemplate,
+					Padding,
+					" ",
+					Address,
+					line)
+			}
+			s.prMu.Unlock()
+			s.PrintProgress()
+		}
 		w.Done()
-	}()
+	}
+
+	go PrintOutput(Stdout, "%*s%s \033[01;32m->\033[0m %s", "%*s%s -> %s")
+	go PrintOutput(Stderr, "%*s%s \033[01;31m=>\033[0m %s", "%*s%s => %s")
 
 	w.Wait()
 
