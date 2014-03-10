@@ -19,7 +19,7 @@ import (
 /* ssh client group */
 type SshGroup struct {
 	/* mutex */
-	stMu     sync.Mutex
+	stMu     sync.RWMutex
 	prMu     sync.Mutex
 	/* statistics */
 	Active   int
@@ -30,15 +30,13 @@ type SshGroup struct {
 
 /* wait until there are at most "n" (or none) processes left */
 func (s *SshGroup) Wait(n int) {
-	var active int
 	for {
-		s.stMu.Lock()
-		active = s.Active
-		s.stMu.Unlock()
-
-		if active == 0 || active < n {
+		s.stMu.RLock()
+		if s.Active == 0 || s.Active < n {
+			s.stMu.RUnlock()
 			break
 		}
+		s.stMu.RUnlock()
 		time.Sleep(100 * time.Millisecond)
 	}
 }
