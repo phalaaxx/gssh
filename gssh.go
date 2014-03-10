@@ -15,18 +15,16 @@ import (
 	"time"
 )
 
-
 /* ssh client group */
 type SshGroup struct {
 	/* mutex */
-	stMu     sync.RWMutex
-	prMu     sync.Mutex
+	stMu sync.RWMutex
+	prMu sync.Mutex
 	/* statistics */
 	Active   int
 	Total    int
 	Complete int
 }
-
 
 /* wait until there are at most "n" (or none) processes left */
 func (s *SshGroup) Wait(n int) {
@@ -41,7 +39,6 @@ func (s *SshGroup) Wait(n int) {
 	}
 }
 
-
 /* clear progress line */
 func (s *SshGroup) ClearProgress() {
 	s.prMu.Lock()
@@ -51,7 +48,6 @@ func (s *SshGroup) ClearProgress() {
 	s.prMu.Unlock()
 }
 
-
 /* print progress line */
 func (s *SshGroup) PrintProgress() {
 	s.stMu.RLock()
@@ -59,11 +55,10 @@ func (s *SshGroup) PrintProgress() {
 	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete",
 		s.Complete,
 		s.Total,
-		float64(s.Complete) * float64(100) / float64(s.Total))
+		float64(s.Complete)*float64(100)/float64(s.Total))
 	s.prMu.Unlock()
 	s.stMu.RUnlock()
 }
-
 
 /* connect to remote server */
 func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command string) {
@@ -78,7 +73,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 
 	/* hostkey checking from commandline arguments */
 	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
-	if ! fStrict {
+	if !fStrict {
 		StrictHostKeyChecking = "StrictHostKeyChecking=no"
 	}
 
@@ -113,7 +108,6 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 
 	var w sync.WaitGroup
 	w.Add(2)
-
 
 	PrintOutput := func(Std *bufio.Reader, Template, LogTemplate string) {
 		for {
@@ -157,7 +151,6 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 
 }
 
-
 /* load servers list from a file */
 func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 	file, err := os.Open(File)
@@ -186,7 +179,6 @@ func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 	return
 }
 
-
 /* global variables */
 var fCommand string
 var fUser string
@@ -209,7 +201,6 @@ func init() {
 	flag.StringVar(&fLogFile, "logfile", "", "save remote output in the file specified")
 }
 
-
 /* main program */
 func main() {
 	/* parse commandline argiments */
@@ -229,10 +220,10 @@ func main() {
 
 	/* make new group */
 	ssh := &SshGroup{
-		Active: 0,
-		Total: len(ServerList),
+		Active:   0,
+		Total:    len(ServerList),
 		Complete: 0,
-		}
+	}
 
 	/* no point to display more processes than  */
 	if fProcs > ssh.Total {
