@@ -193,7 +193,6 @@ var fProcs int
 var fFile string
 var fStrict bool
 
-
 /* initialize */
 func init() {
 	/* commandline arguments */
@@ -204,7 +203,7 @@ func init() {
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
 
 	/* initialize output template strings */
-	Template    = "%*s%s \033[01;32m->\033[0m %s"
+	Template = "%*s%s \033[01;32m->\033[0m %s"
 	ErrTemplate = "%*s%s \033[01;31m=>\033[0m %s"
 
 	/* disable colored output in case output is redirected */
