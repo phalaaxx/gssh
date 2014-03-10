@@ -246,7 +246,7 @@ func main() {
 	}
 
 	/* print heading text */
-	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.3")
+	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.4")
 	fmt.Fprintln(os.Stderr, "(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", ssh.Total)
