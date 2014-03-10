@@ -10,7 +10,9 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
+	"unsafe"
 )
 
 /* ssh client group */
@@ -22,6 +24,17 @@ type SshGroup struct {
 	Active   int
 	Total    int
 	Complete int
+}
+
+/* determine if output device is terminal */
+func IsTerminal(fd uintptr) bool {
+	var termios syscall.Termios
+	_, _, err := syscall.Syscall(
+		syscall.SYS_IOCTL,
+		uintptr(fd),
+		uintptr(syscall.TCGETS),
+		uintptr(unsafe.Pointer(&termios)))
+	return err == 0
 }
 
 /* wait until there are at most "n" (or none) processes left */
@@ -192,6 +205,14 @@ func init() {
 	/* initialize output template strings */
 	Template    = "%*s%s \033[01;32m->\033[0m %s"
 	ErrTemplate = "%*s%s \033[01;31m=>\033[0m %s"
+
+	/* disable colored output in case output is redirected */
+	if !IsTerminal(os.Stdout.Fd()) {
+		Template = "%*s%s -> %s"
+	}
+	if !IsTerminal(os.Stderr.Fd()) {
+		ErrTemplate = "%*s%s => %s"
+	}
 }
 
 /* main program */
