@@ -120,7 +120,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	var w sync.WaitGroup
 	w.Add(2)
 
-	PrintOutput := func(Std *bufio.Reader, Template string) {
+	PrintOutput := func(OutDev *os.File, Std *bufio.Reader, Template string) {
 		for {
 			line, err := Std.ReadString('\n')
 			if err == io.EOF {
@@ -133,7 +133,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 			s.ClearProgress()
 			s.prMu.Lock()
 			/* write output to stdout */
-			fmt.Printf(
+			fmt.Fprintf(
+				OutDev,
 				Template,
 				Padding,
 				" ",
@@ -145,8 +146,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		w.Done()
 	}
 
-	go PrintOutput(Stdout, Template)
-	go PrintOutput(Stderr, ErrTemplate)
+	go PrintOutput(os.Stdout, Stdout, Template)
+	go PrintOutput(os.Stderr, Stderr, ErrTemplate)
 
 	w.Wait()
 
