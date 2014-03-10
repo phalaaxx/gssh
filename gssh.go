@@ -164,6 +164,14 @@ func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	AppendUniq := func(ServerList []string, Server string) []string {
+		for _, S := range ServerList {
+			if S == Server {
+				return ServerList
+			}
+		}
+		return append(ServerList, Server)
+	}
 	Reader := bufio.NewReader(file)
 	for Line, err := Reader.ReadString('\n'); err != io.EOF; Line, err = Reader.ReadString('\n') {
 		SLine := strings.TrimSpace(Line)
@@ -173,7 +181,7 @@ func LoadServerList(File string) (AddrPadding int, ServerList []string) {
 		if AddrPadding < len(SLine) {
 			AddrPadding = len(SLine)
 		}
-		ServerList = append(ServerList, SLine)
+		ServerList = AppendUniq(ServerList, SLine)
 	}
 	return
 }
