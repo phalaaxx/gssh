@@ -45,7 +45,7 @@ func (s *SshGroup) Wait(n int) {
 /* clear progress line */
 func (s *SshGroup) ClearProgress() {
 	s.prMu.Lock()
-	fmt.Printf("\r%*s\r",
+	fmt.Fprintf(os.Stderr, "\r%*s\r",
 		27,
 		" ")
 	s.prMu.Unlock()
@@ -56,7 +56,7 @@ func (s *SshGroup) ClearProgress() {
 func (s *SshGroup) PrintProgress() {
 	s.stMu.RLock()
 	s.prMu.Lock()
-	fmt.Printf("[%d/%d] %.2f%% complete",
+	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete",
 		s.Complete,
 		s.Total,
 		float64(s.Complete) * float64(100) / float64(s.Total))
@@ -263,12 +263,12 @@ func main() {
 	}()
 
 	/* print heading text */
-	fmt.Println("gssh - group ssh, ver. 0.3")
-	fmt.Println("(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
-	fmt.Println()
-	fmt.Printf("  [*] read (%d) hosts from the list\n", ssh.Total)
-	fmt.Printf("  [*] executing '%s' as user '%s'\n", fCommand, fUser)
-	fmt.Printf("  [*] spawning %d parallel ssh sessions\n\n", fProcs)
+	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.3")
+	fmt.Fprintln(os.Stderr, "(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", ssh.Total)
+	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", fCommand, fUser)
+	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
 	/* spawn ssh processes */
 	for i, Server := range ServerList {
@@ -294,6 +294,6 @@ func main() {
 	ssh.Wait(0)
 	ssh.ClearProgress()
 
-	fmt.Println()
-	fmt.Printf("  Done. %d hosts processed.\n", ssh.Total)
+	fmt.Fprintln(os.Stderr)
+	fmt.Fprintf(os.Stderr, "  Done. %d hosts processed.\n", ssh.Total)
 }
