@@ -54,12 +54,14 @@ func (s *SshGroup) ClearProgress() {
 
 /* print progress line */
 func (s *SshGroup) PrintProgress() {
+	s.stMu.RLock()
 	s.prMu.Lock()
 	fmt.Printf("[%d/%d] %.2f%% complete",
 		s.Complete,
 		s.Total,
 		float64(s.Complete) * float64(100) / float64(s.Total))
 	s.prMu.Unlock()
+	s.stMu.RUnlock()
 }
 
 
