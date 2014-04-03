@@ -154,11 +154,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 }
 
 /* load servers list from a file */
-func LoadServerList(File string) (AddrPadding int, ServerList []string) {
-	file, err := os.Open(File)
-	if err != nil {
-		log.Fatal(err)
-	}
+func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
 	AppendUniq := func(ServerList []string, Server string) []string {
 		for _, S := range ServerList {
 			if S == Server {
@@ -230,7 +226,12 @@ func main() {
 
 	fCommand = flag.Args()[0]
 	/* read server names from file */
-	AddrPadding, ServerList := LoadServerList(fFile)
+	file, err := os.Open(fFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	AddrPadding, ServerList := LoadServerList(file)
 
 	/* make new group */
 	ssh := &SshGroup{
