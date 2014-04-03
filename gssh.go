@@ -54,7 +54,7 @@ func (s *SshGroup) Wait(n int) {
 func (s *SshGroup) ClearProgress() {
 	s.prMu.Lock()
 	fmt.Fprintf(os.Stderr, "\r%*s\r",
-		27,
+		41,
 		" ")
 	s.prMu.Unlock()
 }
@@ -63,10 +63,11 @@ func (s *SshGroup) ClearProgress() {
 func (s *SshGroup) PrintProgress() {
 	s.stMu.RLock()
 	s.prMu.Lock()
-	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete",
+	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
 		s.Complete,
 		s.Total,
-		float64(s.Complete)*float64(100)/float64(s.Total))
+		float64(s.Complete)*float64(100)/float64(s.Total),
+		s.Active)
 	s.prMu.Unlock()
 	s.stMu.RUnlock()
 }
