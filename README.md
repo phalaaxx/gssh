@@ -32,8 +32,21 @@ A list of servers is mandatory to use gssh. The list is a plain text file with o
 
 To actually run a command on all files from the list:
 
-	./gssh -file servers.txt "uptime"
+	./gssh -file servers.txt 'uptime'
+
+
+Alternative method to run gssh is to supply list of servers to standard input:
+
+	cat << EOF | gssh 'uptime'
+	server1.domain.tld
+	server2.domain2.tld
+	1.2.3.4
+	EOF
 	
+
+Or to cat list files:
+
+	cat servers.txt servers2.txt | gssh 'uname -r'
 
 
 A full list of currently supported arguments can be obtained with the -h option:
