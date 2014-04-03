@@ -213,25 +213,30 @@ func init() {
 
 /* main program */
 func main() {
+	/* local variables */
+	var err error
+
 	/* parse commandline argiments */
 	flag.Parse()
 	if flag.NArg() < 1 {
 		log.Fatal("Missing command.")
 	}
 
-	/* sanity checks */
-	if fFile == "" {
-		log.Fatal("No serverlist file.")
-	}
+	/* by default, read server list from stdin */
+	ServerListFile := os.Stdin
 
-	fCommand = flag.Args()[0]
-	/* read server names from file */
-	file, err := os.Open(fFile)
-	if err != nil {
-		log.Fatal(err)
+	/* read server names from file if a file name is supplied */
+	if fFile != "" {
+		ServerListFile, err = os.Open(fFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer ServerListFile.Close()
 	}
-	defer file.Close()
-	AddrPadding, ServerList := LoadServerList(file)
+	AddrPadding, ServerList := LoadServerList(ServerListFile)
+
+	/* command to run on servers */
+	fCommand = flag.Args()[0]
 
 	/* make new group */
 	ssh := &SshGroup{
