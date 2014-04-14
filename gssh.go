@@ -151,7 +151,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	go PrintOutput(os.Stderr, Stderr, ErrTemplate)
 
 	w.Wait()
-
+	cmd.Wait()
 }
 
 /* load servers list from a file */
