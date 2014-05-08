@@ -52,24 +52,28 @@ func (s *SshGroup) Wait(n int) {
 
 /* clear progress line */
 func (s *SshGroup) ClearProgress() {
-	s.prMu.Lock()
 	fmt.Fprintf(os.Stderr, "\r%*s\r",
 		41,
 		" ")
-	s.prMu.Unlock()
 }
 
 /* print progress line */
 func (s *SshGroup) PrintProgress() {
 	s.stMu.RLock()
-	s.prMu.Lock()
 	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
 		s.Complete,
 		s.Total,
 		float64(s.Complete)*float64(100)/float64(s.Total),
 		s.Active)
-	s.prMu.Unlock()
 	s.stMu.RUnlock()
+}
+
+/* clear and reprint progress line */
+func (s *SshGroup) UpdateProgress() {
+	s.prMu.Lock()
+	s.ClearProgress()
+	s.PrintProgress()
+	s.prMu.Unlock()
 }
 
 /* connect to remote server */
@@ -79,8 +83,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		s.Active--
 		s.Complete++
 		s.stMu.Unlock()
-		s.ClearProgress()
-		s.PrintProgress()
+		s.UpdateProgress()
 	}()
 
 	/* hostkey checking from commandline arguments */
@@ -131,9 +134,9 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 				log.Fatal(err)
 			}
 
-			s.ClearProgress()
 			s.prMu.Lock()
-			/* write output to stdout */
+			s.ClearProgress()
+			/* print output */
 			fmt.Fprintf(
 				OutDev,
 				Template,
@@ -141,8 +144,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 				" ",
 				Address,
 				line)
-			s.prMu.Unlock()
 			s.PrintProgress()
+			s.prMu.Unlock()
 		}
 		w.Done()
 	}
@@ -271,8 +274,7 @@ func main() {
 			AddrPadding,
 			fCommand)
 		/* show progless after new process spawn */
-		ssh.ClearProgress()
-		ssh.PrintProgress()
+		ssh.UpdateProgress()
 		if i < ssh.Total {
 			/* time delay and max procs wait between spawn */
 			time.Sleep(time.Duration(fDelay) * time.Millisecond)
@@ -281,7 +283,9 @@ func main() {
 	}
 	/* wait for ssh processes to exit */
 	ssh.Wait(0)
+	ssh.prMu.Lock()
 	ssh.ClearProgress()
+	ssh.prMu.Unlock()
 
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintf(os.Stderr, "  Done. %d hosts processed.\n", ssh.Total)
