@@ -182,8 +182,8 @@ func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
 }
 
 /* global variables */
-var Template = ""
-var ErrTemplate = ""
+var Template string
+var ErrTemplate string
 
 /* commandline arguments */
 var fCommand string
