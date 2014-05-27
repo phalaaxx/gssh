@@ -15,6 +15,15 @@ import (
 	"unsafe"
 )
 
+
+// ssh server information
+type SshServer struct {
+	Username        string
+	Address         string
+	StdoutLineCount int
+	StderrLineCount int
+}
+
 /* ssh client group */
 type SshGroup struct {
 	/* mutex */
@@ -24,6 +33,8 @@ type SshGroup struct {
 	Active   int
 	Total    int
 	Complete int
+	// server data
+	Servers []*SshServer
 }
 
 /* determine if output device is terminal */
@@ -77,7 +88,7 @@ func (s *SshGroup) UpdateProgress() {
 }
 
 /* connect to remote server */
-func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command string) {
+func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 	defer func() {
 		s.stMu.Lock()
 		s.Active--
@@ -99,8 +110,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 		"-o", StrictHostKeyChecking,
 		"-o", "GSSAPIAuthentication=no",
 		"-o", "HostbasedAuthentication=no",
-		"-l", Username,
-		Address,
+		"-l", ssh.Username,
+		ssh.Address,
 		Command)
 
 	stdout, err := cmd.StdoutPipe()
@@ -114,7 +125,7 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	}
 
 	/* padding length */
-	Padding := AddrPadding - len(Address) + 1
+	Padding := AddrPadding - len(ssh.Address) + 1
 	Stdout := bufio.NewReader(stdout)
 	Stderr := bufio.NewReader(stderr)
 
@@ -124,7 +135,8 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 	var w sync.WaitGroup
 	w.Add(2)
 
-	PrintOutput := func(OutDev *os.File, Std *bufio.Reader, Template string) {
+	PrintOutput := func(OutDev *os.File, Std *bufio.Reader, Template string, LineCount *int) {
+		PrintToTerminal := IsTerminal(OutDev.Fd())
 		for {
 			line, err := Std.ReadString('\n')
 			if err == io.EOF {
@@ -135,23 +147,28 @@ func (s *SshGroup) Command(Username, Address string, AddrPadding int, Command st
 			}
 
 			s.prMu.Lock()
-			s.ClearProgress()
+			if PrintToTerminal {
+				s.ClearProgress()
+			}
 			/* print output */
 			fmt.Fprintf(
 				OutDev,
 				Template,
 				Padding,
 				" ",
-				Address,
+				ssh.Address,
 				line)
-			s.PrintProgress()
+			if PrintToTerminal {
+				s.PrintProgress()
+			}
+			*LineCount++
 			s.prMu.Unlock()
 		}
 		w.Done()
 	}
 
-	go PrintOutput(os.Stdout, Stdout, Template)
-	go PrintOutput(os.Stderr, Stderr, ErrTemplate)
+	go PrintOutput(os.Stdout, Stdout, Template, &ssh.StdoutLineCount)
+	go PrintOutput(os.Stderr, Stderr, ErrTemplate, &ssh.StderrLineCount)
 
 	w.Wait()
 	cmd.Wait()
@@ -243,50 +260,81 @@ func main() {
 	fCommand = flag.Args()[0]
 
 	/* make new group */
-	ssh := &SshGroup{
+	group := &SshGroup{
 		Active:   0,
 		Total:    len(ServerList),
 		Complete: 0,
 	}
 
 	/* no point to display more processes than  */
-	if fProcs > ssh.Total {
-		fProcs = ssh.Total
+	if fProcs > group.Total {
+		fProcs = group.Total
 	}
 
 	/* print heading text */
 	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.5")
 	fmt.Fprintln(os.Stderr, "(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", ssh.Total)
+	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", group.Total)
 	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", fCommand, fUser)
 	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
 	/* spawn ssh processes */
 	for i, Server := range ServerList {
+		ssh := &SshServer{
+			Username: fUser,
+			Address:  Server,
+			}
+		group.Servers = append(group.Servers, ssh)
 		/* run command */
-		ssh.stMu.Lock()
-		ssh.Active++
-		ssh.stMu.Unlock()
-		go ssh.Command(
-			fUser,
-			Server,
-			AddrPadding,
-			fCommand)
+		group.stMu.Lock()
+		group.Active++
+		group.stMu.Unlock()
+		go group.Command(ssh, AddrPadding, fCommand)
 		/* show progless after new process spawn */
-		ssh.UpdateProgress()
-		if i < ssh.Total {
+		group.UpdateProgress()
+		if i < group.Total {
 			/* time delay and max procs wait between spawn */
 			time.Sleep(time.Duration(fDelay) * time.Millisecond)
-			ssh.Wait(fProcs)
+			group.Wait(fProcs)
 		}
 	}
 	/* wait for ssh processes to exit */
-	ssh.Wait(0)
-	ssh.prMu.Lock()
-	ssh.ClearProgress()
-	ssh.prMu.Unlock()
+	group.Wait(0)
+	group.prMu.Lock()
+	group.ClearProgress()
+	group.prMu.Unlock()
+
+	// calculate stats
+	var StdoutServersCount int
+	var StderrServersCount int
+	var AllServersCount    int
+	var StdoutLinesCount   int
+	var StderrLinesCount   int
+	var AllLinesCount      int
+	for _, ssh := range group.Servers {
+		if ssh.StdoutLineCount > 0 {
+			StdoutLinesCount += ssh.StdoutLineCount
+			StdoutServersCount++
+		}
+		if ssh.StderrLineCount > 0 {
+			StderrLinesCount += ssh.StderrLineCount
+			StderrServersCount++
+		}
+		if ssh.StdoutLineCount > 0 || ssh.StderrLineCount > 0 {
+			AllLinesCount += ssh.StdoutLineCount + ssh.StderrLineCount
+			AllServersCount++
+		}
+	}
 
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintf(os.Stderr, "  Done. %d hosts processed.\n", ssh.Total)
+	fmt.Fprintf(os.Stderr, "  Done. Processed: %d / Output: %d (%d) / \033[01;32m->\033[0m %d (%d) / \033[01;31m=>\033[0m %d (%d)\n",
+		group.Total,
+		AllServersCount,
+		AllLinesCount,
+		StdoutServersCount,
+		StdoutLinesCount,
+		StderrServersCount,
+		StderrLinesCount,
+		)
 }
