@@ -94,7 +94,7 @@ func main() {
 		ssh := &SshServer{
 			Username: fUser,
 			Address:  Server,
-			}
+		}
 		group.Servers = append(group.Servers, ssh)
 		// run command
 		group.stMu.Lock()
@@ -118,10 +118,10 @@ func main() {
 	// calculate stats
 	var StdoutServersCount int
 	var StderrServersCount int
-	var AllServersCount    int
-	var StdoutLinesCount   int
-	var StderrLinesCount   int
-	var AllLinesCount      int
+	var AllServersCount int
+	var StdoutLinesCount int
+	var StderrLinesCount int
+	var AllLinesCount int
 	for _, ssh := range group.Servers {
 		if ssh.StdoutLineCount > 0 {
 			StdoutLinesCount += ssh.StdoutLineCount
@@ -146,5 +146,5 @@ func main() {
 		StdoutLinesCount,
 		StderrServersCount,
 		StderrLinesCount,
-		)
+	)
 }

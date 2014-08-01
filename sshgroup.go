@@ -11,7 +11,6 @@ import (
 	"time"
 )
 
-
 // ssh client group
 type SshGroup struct {
 	// mutex
