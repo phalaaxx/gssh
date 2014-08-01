@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"syscall"
 	"time"
-	"unsafe"
 )
 
 // ssh server information
@@ -16,17 +14,6 @@ type SshServer struct {
 	Address         string
 	StdoutLineCount int
 	StderrLineCount int
-}
-
-// determine if output device is terminal
-func IsTerminal(fd uintptr) bool {
-	var termios syscall.Termios
-	_, _, err := syscall.Syscall(
-		syscall.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(syscall.TCGETS),
-		uintptr(unsafe.Pointer(&termios)))
-	return err == 0
 }
 
 // global variables
