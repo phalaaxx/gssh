@@ -17,7 +17,7 @@ Usage
 
 To build gssh use the following command:
 
-	go build gssh.go
+	go build
 	./gssh -h
 
 
