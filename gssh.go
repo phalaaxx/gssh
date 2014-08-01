@@ -50,7 +50,7 @@ func main() {
 	// parse commandline argiments
 	flag.Parse()
 	if flag.NArg() < 1 {
-		log.Fatal("Missing command.")
+		log.Fatal("Nothing to do. Use -h for help.")
 	}
 
 	// by default, read server list from stdin
