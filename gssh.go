@@ -24,12 +24,12 @@ type SshServer struct {
 	StderrLineCount int
 }
 
-/* ssh client group */
+// ssh client group
 type SshGroup struct {
-	/* mutex */
+	// mutex
 	stMu sync.RWMutex
 	prMu sync.Mutex
-	/* statistics */
+	// statistics
 	Active   int
 	Total    int
 	Complete int
@@ -37,7 +37,7 @@ type SshGroup struct {
 	Servers []*SshServer
 }
 
-/* determine if output device is terminal */
+// determine if output device is terminal
 func IsTerminal(fd uintptr) bool {
 	var termios syscall.Termios
 	_, _, err := syscall.Syscall(
@@ -48,7 +48,7 @@ func IsTerminal(fd uintptr) bool {
 	return err == 0
 }
 
-/* wait until there are at most "n" (or none) processes left */
+// wait until there are at most "n" (or none) processes left
 func (s *SshGroup) Wait(n int) {
 	for {
 		s.stMu.RLock()
@@ -61,14 +61,14 @@ func (s *SshGroup) Wait(n int) {
 	}
 }
 
-/* clear progress line */
+// clear progress line
 func (s *SshGroup) ClearProgress() {
 	fmt.Fprintf(os.Stderr, "\r%*s\r",
 		41,
 		" ")
 }
 
-/* print progress line */
+// print progress line
 func (s *SshGroup) PrintProgress() {
 	s.stMu.RLock()
 	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
@@ -79,7 +79,7 @@ func (s *SshGroup) PrintProgress() {
 	s.stMu.RUnlock()
 }
 
-/* clear and reprint progress line */
+// clear and reprint progress line
 func (s *SshGroup) UpdateProgress() {
 	s.prMu.Lock()
 	s.ClearProgress()
@@ -87,7 +87,7 @@ func (s *SshGroup) UpdateProgress() {
 	s.prMu.Unlock()
 }
 
-/* connect to remote server */
+// connect to remote server
 func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 	defer func() {
 		s.stMu.Lock()
@@ -97,7 +97,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 		s.UpdateProgress()
 	}()
 
-	/* hostkey checking from commandline arguments */
+	// hostkey checking from commandline arguments
 	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
 	if !fStrict {
 		StrictHostKeyChecking = "StrictHostKeyChecking=no"
@@ -124,12 +124,12 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 		log.Fatal(err)
 	}
 
-	/* padding length */
+	// padding length
 	Padding := AddrPadding - len(ssh.Address) + 1
 	Stdout := bufio.NewReader(stdout)
 	Stderr := bufio.NewReader(stderr)
 
-	/* run the command */
+	// run the command
 	cmd.Start()
 
 	var w sync.WaitGroup
@@ -150,7 +150,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 			if PrintToTerminal {
 				s.ClearProgress()
 			}
-			/* print output */
+			// print output
 			fmt.Fprintf(
 				OutDev,
 				Template,
@@ -174,7 +174,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 	cmd.Wait()
 }
 
-/* load servers list from a file */
+// load servers list from a file
 func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
 	AppendUniq := func(ServerList []string, Server string) []string {
 		for _, S := range ServerList {
@@ -198,11 +198,11 @@ func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
 	return
 }
 
-/* global variables */
+// global variables
 var Template string
 var ErrTemplate string
 
-/* commandline arguments */
+// commandline arguments
 var fCommand string
 var fUser string
 var fDelay int
@@ -210,20 +210,20 @@ var fProcs int
 var fFile string
 var fStrict bool
 
-/* initialize */
+// initialize
 func init() {
-	/* commandline arguments */
+	// commandline arguments
 	flag.StringVar(&fUser, "user", "root", "ssh login as this username")
 	flag.StringVar(&fFile, "file", "", "file with the list of hosts")
 	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
 
-	/* initialize output template strings */
+	// initialize output template strings
 	Template = "%*s%s \033[01;32m->\033[0m %s"
 	ErrTemplate = "%*s%s \033[01;31m=>\033[0m %s"
 
-	/* disable colored output in case output is redirected */
+	// disable colored output in case output is redirected
 	if !IsTerminal(os.Stdout.Fd()) {
 		Template = "%*s%s -> %s"
 	}
@@ -232,21 +232,21 @@ func init() {
 	}
 }
 
-/* main program */
+// main program
 func main() {
-	/* local variables */
+	// local variables
 	var err error
 
-	/* parse commandline argiments */
+	// parse commandline argiments
 	flag.Parse()
 	if flag.NArg() < 1 {
 		log.Fatal("Missing command.")
 	}
 
-	/* by default, read server list from stdin */
+	// by default, read server list from stdin
 	ServerListFile := os.Stdin
 
-	/* read server names from file if a file name is supplied */
+	// read server names from file if a file name is supplied
 	if fFile != "" {
 		ServerListFile, err = os.Open(fFile)
 		if err != nil {
@@ -256,22 +256,22 @@ func main() {
 	}
 	AddrPadding, ServerList := LoadServerList(ServerListFile)
 
-	/* command to run on servers */
+	// command to run on servers
 	fCommand = flag.Args()[0]
 
-	/* make new group */
+	// make new group
 	group := &SshGroup{
 		Active:   0,
 		Total:    len(ServerList),
 		Complete: 0,
 	}
 
-	/* no point to display more processes than  */
+	// no point to display more processes than
 	if fProcs > group.Total {
 		fProcs = group.Total
 	}
 
-	/* print heading text */
+	// print heading text
 	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.6")
 	fmt.Fprintln(os.Stderr, "(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Fprintln(os.Stderr)
@@ -279,27 +279,27 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", fCommand, fUser)
 	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", fProcs)
 
-	/* spawn ssh processes */
+	// spawn ssh processes
 	for i, Server := range ServerList {
 		ssh := &SshServer{
 			Username: fUser,
 			Address:  Server,
 			}
 		group.Servers = append(group.Servers, ssh)
-		/* run command */
+		// run command
 		group.stMu.Lock()
 		group.Active++
 		group.stMu.Unlock()
 		go group.Command(ssh, AddrPadding, fCommand)
-		/* show progless after new process spawn */
+		// show progless after new process spawn
 		group.UpdateProgress()
 		if i < group.Total {
-			/* time delay and max procs wait between spawn */
+			// time delay and max procs wait between spawn
 			time.Sleep(time.Duration(fDelay) * time.Millisecond)
 			group.Wait(fProcs)
 		}
 	}
-	/* wait for ssh processes to exit */
+	// wait for ssh processes to exit
 	group.Wait(0)
 	group.prMu.Lock()
 	group.ClearProgress()
