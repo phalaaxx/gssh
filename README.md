@@ -11,15 +11,21 @@ Requirements
 In order to use gssh, the ssh binary from openssh package must be installed in user's path.
 Also the machine running gssh should be able to connect to every server listed in the file with hosts without a password - either with a passwordless key or with ssh agent. 
 
-
-Usage
+Build
 -----
 
-To build gssh use the following command:
+To build gssh with official golang compiler, use the following command:
 
 	go build
 	./gssh -h
 
+In case you want to build gssh against gccgo compiler, the sample makefile can be used:
+
+	make
+	make install PREFIX=/usr
+
+Usage
+-----
 
 A list of servers is mandatory to use gssh. The list is a plain text file with one server at a line (no username):
 
