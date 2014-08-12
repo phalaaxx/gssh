@@ -92,12 +92,12 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Sprintf("StdoutPipe: Error: %v", err))
 	}
 
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Sprintf("StderrPipe: Error: %v", err))
 	}
 
 	// padding length
@@ -119,7 +119,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 				break
 			}
 			if err != nil {
-				log.Fatal(err)
+				log.Fatal(fmt.Sprintf("PrintOutput: Error: %v", err))
 			}
 
 			s.prMu.Lock()

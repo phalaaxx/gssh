@@ -60,7 +60,7 @@ func main() {
 	if fFile != "" {
 		ServerListFile, err = os.Open(fFile)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal(fmt.Sprintf("ServerListFile: Error: %v", err))
 		}
 		defer ServerListFile.Close()
 	}
