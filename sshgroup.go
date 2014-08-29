@@ -50,6 +50,7 @@ func (s *SshGroup) PrintProgress() {
 		s.Total,
 		float64(s.Complete)*float64(100)/float64(s.Total),
 		s.Active)
+	os.Stderr.Sync()
 }
 
 // clear and reprint progress line
