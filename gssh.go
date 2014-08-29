@@ -25,7 +25,7 @@ func init() {
 	// commandline arguments
 	flag.StringVar(&fUser, "user", "root", "ssh login as this username")
 	flag.StringVar(&fFile, "file", "", "file with the list of hosts")
-	flag.IntVar(&fDelay, "delay", 10, "delay between each ssh fork (default 10 msec)")
+	flag.IntVar(&fDelay, "delay", 100, "delay between each ssh fork (default 100 msec)")
 	flag.IntVar(&fProcs, "procs", 500, "number of parallel ssh processes (default: 500)")
 	flag.BoolVar(&fStrict, "strict", true, "strict ssh fingerprint checking")
 
