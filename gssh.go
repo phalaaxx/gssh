@@ -97,9 +97,9 @@ func main() {
 		}
 		group.Servers = append(group.Servers, ssh)
 		// run command
-		group.stMu.Lock()
+		group.mu.Lock()
 		group.Active++
-		group.stMu.Unlock()
+		group.mu.Unlock()
 		go group.Command(ssh, AddrPadding, fCommand)
 		// show progless after new process spawn
 		group.UpdateProgress()
@@ -111,9 +111,9 @@ func main() {
 	}
 	// wait for ssh processes to exit
 	group.Wait(0)
-	group.prMu.Lock()
+	group.mu.Lock()
 	group.ClearProgress()
-	group.prMu.Unlock()
+	group.mu.Unlock()
 
 	// calculate stats
 	var StdoutServersCount int

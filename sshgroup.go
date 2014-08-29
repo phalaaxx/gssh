@@ -14,8 +14,7 @@ import (
 // ssh client group
 type SshGroup struct {
 	// mutex
-	stMu sync.RWMutex
-	prMu sync.Mutex
+	mu sync.Mutex
 	// statistics
 	Active   int
 	Total    int
@@ -27,12 +26,12 @@ type SshGroup struct {
 // wait until there are at most "n" (or none) processes left
 func (s *SshGroup) Wait(n int) {
 	for {
-		s.stMu.RLock()
+		s.mu.Lock()
 		if s.Active == 0 || s.Active < n {
-			s.stMu.RUnlock()
+			s.mu.Unlock()
 			break
 		}
-		s.stMu.RUnlock()
+		s.mu.Unlock()
 		time.Sleep(100 * time.Millisecond)
 	}
 }
@@ -46,30 +45,28 @@ func (s *SshGroup) ClearProgress() {
 
 // print progress line
 func (s *SshGroup) PrintProgress() {
-	s.stMu.RLock()
 	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
 		s.Complete,
 		s.Total,
 		float64(s.Complete)*float64(100)/float64(s.Total),
 		s.Active)
-	s.stMu.RUnlock()
 }
 
 // clear and reprint progress line
 func (s *SshGroup) UpdateProgress() {
-	s.prMu.Lock()
+	s.mu.Lock()
 	s.ClearProgress()
 	s.PrintProgress()
-	s.prMu.Unlock()
+	s.mu.Unlock()
 }
 
 // connect to remote server
 func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 	defer func() {
-		s.stMu.Lock()
+		s.mu.Lock()
 		s.Active--
 		s.Complete++
-		s.stMu.Unlock()
+		s.mu.Unlock()
 		s.UpdateProgress()
 	}()
 
@@ -122,7 +119,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 				log.Fatal(fmt.Sprintf("PrintOutput: Error: %v", err))
 			}
 
-			s.prMu.Lock()
+			s.mu.Lock()
 			if PrintToTerminal {
 				s.ClearProgress()
 			}
@@ -138,7 +135,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 				s.PrintProgress()
 			}
 			*LineCount++
-			s.prMu.Unlock()
+			s.mu.Unlock()
 		}
 		w.Done()
 	}
