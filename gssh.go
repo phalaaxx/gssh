@@ -19,6 +19,7 @@ var fDelay *int
 var fProcs *int
 var fFile *string
 var fNoStrict *bool
+var fHelp *bool
 
 // initialize
 func init() {
@@ -28,6 +29,7 @@ func init() {
 	fDelay = getopt.IntLong("delay", 'd', 100, "delay between each ssh fork (default 100 msec)")
 	fProcs = getopt.IntLong("procs", 'p', 500, "number of parallel ssh processes (default: 500)")
 	fNoStrict = getopt.BoolLong("nostrict", 'n', "don't use strict ssh fingerprint checking")
+	fHelp = getopt.BoolLong("help", 'h', "show this help screen")
 
 	// initialize output template strings
 	Template = "%*s%s \033[01;32m->\033[0m %s"
@@ -49,6 +51,14 @@ func main() {
 
 	// parse commandline argiments
 	getopt.Parse()
+
+	// show help screen and exit in case of -h or --help option
+	if *fHelp {
+		getopt.Usage()
+		os.Exit(1)
+	}
+
+	// look for mandatory positional arguments
 	if getopt.NArgs() < 1 {
 		log.Fatal("Nothing to do. Use -h for help.")
 	}
