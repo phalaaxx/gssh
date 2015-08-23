@@ -73,7 +73,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 
 	// hostkey checking from commandline arguments
 	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
-	if !fStrict {
+	if *fNoStrict {
 		StrictHostKeyChecking = "StrictHostKeyChecking=no"
 	}
 
