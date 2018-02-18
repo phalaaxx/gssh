@@ -7,11 +7,11 @@ import (
 
 // determine if output device is terminal
 func IsTerminal(fd uintptr) bool {
-	var termios syscall.Termios
+	var term syscall.Termios
 	_, _, err := syscall.Syscall(
 		syscall.SYS_IOCTL,
 		uintptr(fd),
 		uintptr(syscall.TCGETS),
-		uintptr(unsafe.Pointer(&termios)))
+		uintptr(unsafe.Pointer(&term)))
 	return err == 0
 }

@@ -71,7 +71,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string, NoSt
 		s.UpdateProgress()
 	}()
 
-	// hostkey checking from commandline arguments
+	// host key checking from commandline arguments
 	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
 	if NoStrict {
 		StrictHostKeyChecking = "StrictHostKeyChecking=no"

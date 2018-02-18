@@ -20,7 +20,7 @@ func main() {
 		"file with the list of hosts")
 	OptDelay := getopt.IntLong("delay", 'd', 100,
 		"delay between each ssh fork (default 100 msec)")
-	OptProcs := getopt.IntLong("procs", 'p', 500,
+	OptProcesses := getopt.IntLong("procs", 'p', 500,
 		"number of parallel ssh processes (default: 500)")
 	OptNoStrict := getopt.BoolLong("nostrict", 'n',
 		"don't use strict ssh fingerprint checking")
@@ -75,8 +75,8 @@ func main() {
 	}
 
 	// no point to display more processes than
-	if *OptProcs > group.Total {
-		*OptProcs = group.Total
+	if *OptProcesses > group.Total {
+		*OptProcesses = group.Total
 	}
 
 	// print heading text
@@ -85,7 +85,7 @@ func main() {
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", group.Total)
 	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", OptCommand, *OptUser)
-	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", *OptProcs)
+	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", *OptProcesses)
 
 	// spawn ssh processes
 	for i, Server := range ServerList {
@@ -102,9 +102,9 @@ func main() {
 		// show progress after new process spawn
 		group.UpdateProgress()
 		if i < group.Total {
-			// time delay and max procs wait between spawn
+			// time delay and max processes wait between spawns
 			time.Sleep(time.Duration(*OptDelay) * time.Millisecond)
-			group.Wait(*OptProcs)
+			group.Wait(*OptProcesses)
 		}
 	}
 	// wait for ssh processes to exit
