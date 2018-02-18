@@ -75,8 +75,8 @@ func main() {
 	}
 
 	// print heading text
-	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 0.6")
-	fmt.Fprintln(os.Stderr, "(c)2014 Bozhin Zafirov <bozhin@deck17.com>")
+	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 1.1")
+	fmt.Fprintln(os.Stderr, "(c)2014-2018 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", group.Total)
 	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", OptCommand, *OptUser)
