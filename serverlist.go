@@ -9,7 +9,7 @@ import (
 
 // load servers list from a file
 func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
-	AppendUniq := func(ServerList []string, Server string) []string {
+	AppendUnique := func(ServerList []string, Server string) []string {
 		for _, S := range ServerList {
 			if S == Server {
 				return ServerList
@@ -26,7 +26,7 @@ func LoadServerList(file *os.File) (AddrPadding int, ServerList []string) {
 		if AddrPadding < len(SLine) {
 			AddrPadding = len(SLine)
 		}
-		ServerList = AppendUniq(ServerList, SLine)
+		ServerList = AppendUnique(ServerList, SLine)
 	}
 	return
 }
