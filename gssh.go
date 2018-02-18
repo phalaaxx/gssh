@@ -49,7 +49,7 @@ func main() {
 	// local variables
 	var err error
 
-	// parse commandline argiments
+	// parse commandline arguments
 	getopt.Parse()
 
 	// show help screen and exit in case of -h or --help option
