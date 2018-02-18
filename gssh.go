@@ -8,19 +8,24 @@ import (
 	"time"
 )
 
-
 // main program
 func main() {
 	// local variables
 	var err error
 
 	// parse command line arguments
-	OptUser := getopt.StringLong("user", 'u', "root", "ssh login as this username")
-	OptFile := getopt.StringLong("file", 'f', "", "file with the list of hosts")
-	OptDelay := getopt.IntLong("delay", 'd', 100, "delay between each ssh fork (default 100 msec)")
-	OptProcs := getopt.IntLong("procs", 'p', 500, "number of parallel ssh processes (default: 500)")
-	OptNoStrict := getopt.BoolLong("nostrict", 'n', "don't use strict ssh fingerprint checking")
-	OptHelp := getopt.BoolLong("help", 'h', "show this help screen")
+	OptUser := getopt.StringLong("user", 'u', "root",
+		"ssh login as this username")
+	OptFile := getopt.StringLong("file", 'f', "",
+		"file with the list of hosts")
+	OptDelay := getopt.IntLong("delay", 'd', 100,
+		"delay between each ssh fork (default 100 msec)")
+	OptProcs := getopt.IntLong("procs", 'p', 500,
+		"number of parallel ssh processes (default: 500)")
+	OptNoStrict := getopt.BoolLong("nostrict", 'n',
+		"don't use strict ssh fingerprint checking")
+	OptHelp := getopt.BoolLong("help", 'h',
+		"show this help screen")
 	getopt.Parse()
 
 	// show help screen and exit in case of -h or --help option
@@ -131,7 +136,9 @@ func main() {
 	}
 
 	fmt.Fprintln(os.Stderr)
-	fmt.Fprintf(os.Stderr, "  Done. Processed: %d / Output: %d (%d) / \033[01;32m->\033[0m %d (%d) / \033[01;31m=>\033[0m %d (%d)\n",
+	fmt.Fprintf(os.Stderr,
+		"  Done. Processed: %d / Output: %d (%d) / "+
+			"\033[01;32m->\033[0m %d (%d) / \033[01;31m=>\033[0m %d (%d)\n",
 		group.Total,
 		AllServersCount,
 		AllLinesCount,
