@@ -62,7 +62,7 @@ func (s *SshGroup) UpdateProgress() {
 }
 
 // connect to remote server
-func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
+func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string, NoStrict bool, Template string, ErrTemplate string) {
 	defer func() {
 		s.mu.Lock()
 		s.Active--
@@ -73,7 +73,7 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string) {
 
 	// hostkey checking from commandline arguments
 	StrictHostKeyChecking := "StrictHostKeyChecking=yes"
-	if *fNoStrict {
+	if NoStrict {
 		StrictHostKeyChecking = "StrictHostKeyChecking=no"
 	}
 
