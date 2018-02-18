@@ -111,7 +111,7 @@ func main() {
 		group.Active++
 		group.mu.Unlock()
 		go group.Command(ssh, AddrPadding, fCommand)
-		// show progless after new process spawn
+		// show progress after new process spawn
 		group.UpdateProgress()
 		if i < group.Total {
 			// time delay and max procs wait between spawn
