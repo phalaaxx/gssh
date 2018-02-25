@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/pborman/getopt"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,28 +14,22 @@ func main() {
 	var err error
 
 	// parse command line arguments
-	OptUser := getopt.StringLong("user", 'u', "root",
-		"ssh login as this username")
-	OptFile := getopt.StringLong("file", 'f', "",
-		"file with the list of hosts")
-	OptDelay := getopt.IntLong("delay", 'd', 100,
-		"delay between each ssh fork (default 100 msec)")
-	OptProcesses := getopt.IntLong("procs", 'p', 500,
-		"number of parallel ssh processes (default: 500)")
-	OptNoStrict := getopt.BoolLong("nostrict", 'n',
-		"don't use strict ssh fingerprint checking")
-	OptHelp := getopt.BoolLong("help", 'h',
-		"show this help screen")
-	getopt.Parse()
+	OptUser := flag.String("u", "root", "ssh login as this username")
+	OptFile := flag.String("f", "", "file with the list of hosts")
+	OptDelay := flag.Int("d", 100, "delay between each ssh fork (default 100 msec)")
+	OptProcesses := flag.Int("p", 500, "number of parallel ssh processes (default: 500)")
+	OptNoStrict := flag.Bool("n", false, "don't use strict ssh fingerprint checking")
+	OptHelp := flag.Bool("h", false, "show this help screen")
+	flag.Parse()
 
 	// show help screen and exit in case of -h or --help option
 	if *OptHelp {
-		getopt.Usage()
+		flag.Usage()
 		os.Exit(1)
 	}
 
 	// look for mandatory positional arguments
-	if getopt.NArgs() < 1 {
+	if flag.NArg() < 1 {
 		log.Fatal("Nothing to do. Use -h for help.")
 	}
 
@@ -65,7 +59,7 @@ func main() {
 	AddrPadding, ServerList := LoadServerList(ServerListFile)
 
 	// command to run on servers
-	OptCommand := getopt.Arg(0)
+	OptCommand := flag.Arg(0)
 
 	// make new group
 	group := &SshGroup{
