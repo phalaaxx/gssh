@@ -57,19 +57,26 @@ Or to cat list files:
 
 A full list of currently supported arguments can be obtained with the -h option:
 
-	gssh -h
-	Usage: gssh-go [-hn] [-d value] [-f value] [-p value] [-u value] [parameters ...]
-	 -d, --delay=value  delay between each ssh fork (default 100 msec)
-	 -f, --file=value   file with the list of hosts
-	 -h, --help         show this help screen
-	 -n, --nostrict     don't use strict ssh fingerprint checking
-	 -p, --procs=value  number of parallel ssh processes (default: 500)
-	 -u, --user=value   ssh login as this username
+	$ gssh -h
+	Usage of gssh:
+	  -d int
+	        delay between each ssh fork (default 100 msec) (default 100)
+	  -f string
+	        file with the list of hosts
+	  -h    show this help screen
+	  -n    don't use strict ssh fingerprint checking
+	  -p int
+	        number of parallel ssh processes (default: 500) (default 500)
+	  -s string
+	        name of ini section containing servers list
+	  -u string
+	        ssh login as this username (default "root")
 
 Options:
 
-  * **delay** - this is the time in miliseconds to wait between spawning next process
-  * **file** - name of a text file containing list of servers; lines starting with # and empty lines are ignored
-  * **procs** - maximum number of processes to spawn
-  * **nostrict** - ask not to use strict fingerprint checking; default is to use strict checking
-  * **user** - username to use for ssh login
+  * **d** - this is the time in miliseconds to wait between spawning next process
+  * **f** - name of a text file containing list of servers; lines starting with # and empty lines are ignored
+  * **p** - maximum number of processes to spawn
+  * **n** - ask not to use strict fingerprint checking; default is to use strict checking
+  * **u** - username to use for ssh login
+  * **s** - name of ini-like section in input file under which is the list of servers to process
