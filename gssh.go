@@ -17,6 +17,7 @@ func main() {
 	OptUser := flag.String("u", "root", "ssh login as this username")
 	OptFile := flag.String("f", "", "file with the list of hosts")
 	OptDelay := flag.Int("d", 100, "delay between each ssh fork (default 100 msec)")
+	OptSection := flag.String("s", "", "name of ini section containing servers list")
 	OptProcesses := flag.Int("p", 500, "number of parallel ssh processes (default: 500)")
 	OptNoStrict := flag.Bool("n", false, "don't use strict ssh fingerprint checking")
 	OptHelp := flag.Bool("h", false, "show this help screen")
@@ -74,7 +75,7 @@ func main() {
 	}
 
 	// print heading text
-	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 1.1")
+	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 1.2")
 	fmt.Fprintln(os.Stderr, "(c)2014-2018 Bozhin Zafirov <bozhin@deck17.com>")
 	fmt.Fprintln(os.Stderr)
 	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", group.Total)
@@ -82,23 +83,29 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", *OptProcesses)
 
 	// spawn ssh processes
-	for i, Server := range ServerList {
-		ssh := &SshServer{
-			Username: *OptUser,
-			Address:  Server,
+	for section := range ServerList {
+		if len(*OptSection) != 0 && section != *OptSection {
+			// skip current section
+			continue
 		}
-		group.Servers = append(group.Servers, ssh)
-		// run command
-		group.mu.Lock()
-		group.Active++
-		group.mu.Unlock()
-		go group.Command(ssh, AddrPadding, OptCommand, *OptNoStrict, Template, ErrTemplate)
-		// show progress after new process spawn
-		group.UpdateProgress()
-		if i < group.Total {
-			// time delay and max processes wait between spawns
-			time.Sleep(time.Duration(*OptDelay) * time.Millisecond)
-			group.Wait(*OptProcesses)
+		for i, Server := range ServerList[section] {
+			ssh := &SshServer{
+				Username: *OptUser,
+				Address:  Server,
+			}
+			group.Servers = append(group.Servers, ssh)
+			// run command
+			group.mu.Lock()
+			group.Active++
+			group.mu.Unlock()
+			go group.Command(ssh, AddrPadding, OptCommand, *OptNoStrict, Template, ErrTemplate)
+			// show progress after new process spawn
+			group.UpdateProgress()
+			if i < group.Total {
+				// time delay and max processes wait between spawns
+				time.Sleep(time.Duration(*OptDelay) * time.Millisecond)
+				group.Wait(*OptProcesses)
+			}
 		}
 	}
 	// wait for ssh processes to exit
