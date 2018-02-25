@@ -57,7 +57,7 @@ func main() {
 		}
 		defer ServerListFile.Close()
 	}
-	AddrPadding, ServerList := LoadServerList(ServerListFile)
+	AddrPadding, servers := LoadServerList(ServerListFile)
 
 	// command to run on servers
 	OptCommand := flag.Arg(0)
@@ -65,7 +65,7 @@ func main() {
 	// make new group
 	group := &SshGroup{
 		Active:   0,
-		Total:    len(ServerList),
+		Total:    servers.Len(*OptSection),
 		Complete: 0,
 	}
 
@@ -83,12 +83,12 @@ func main() {
 	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", *OptProcesses)
 
 	// spawn ssh processes
-	for section := range ServerList {
+	for section := range servers {
 		if len(*OptSection) != 0 && section != *OptSection {
 			// skip current section
 			continue
 		}
-		for i, Server := range ServerList[section] {
+		for i, Server := range servers[section] {
 			ssh := &SshServer{
 				Username: *OptUser,
 				Address:  Server,

@@ -7,16 +7,29 @@ import (
 	"strings"
 )
 
+/* ServerList defines a type for list of servers with sections */
+type ServerList map[string][]string
+
+/* Len returns the number of servers in the specified section */
+func (s ServerList) Len(sectionName string) (count int) {
+	for section := range s {
+		if len(sectionName) == 0 || sectionName == section {
+			count = count + len(s[section])
+		}
+	}
+	return count
+}
+
 /* LoadServerList loads a list of server addresses from a file */
-func LoadServerList(file *os.File) (AddrPadding int, ServerList map[string][]string) {
-	ServerList = make(map[string][]string)
-	AppendUnique := func(ServerList []string, Server string) []string {
-		for _, S := range ServerList {
+func LoadServerList(file *os.File) (AddrPadding int, servers ServerList) {
+	servers = make(map[string][]string)
+	AppendUnique := func(sectionList []string, Server string) []string {
+		for _, S := range sectionList {
 			if S == Server {
-				return ServerList
+				return sectionList
 			}
 		}
-		return append(ServerList, Server)
+		return append(sectionList, Server)
 	}
 	Reader := bufio.NewReader(file)
 	section := "main"
@@ -32,7 +45,7 @@ func LoadServerList(file *os.File) (AddrPadding int, ServerList map[string][]str
 		if AddrPadding < len(SLine) {
 			AddrPadding = len(SLine)
 		}
-		ServerList[section] = AppendUnique(ServerList[section], SLine)
+		servers[section] = AppendUnique(servers[section], SLine)
 	}
 	return
 }
