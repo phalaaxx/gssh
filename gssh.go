@@ -20,6 +20,7 @@ func main() {
 	OptSection := flag.String("s", "", "name of ini section containing servers list")
 	OptProcesses := flag.Int("p", 500, "number of parallel ssh processes (default: 500)")
 	OptNoStrict := flag.Bool("n", false, "don't use strict ssh fingerprint checking")
+    OptAnsible := flag.Bool("a", false, "Read ansible hosts file at /etc/ansible/hosts")
 	OptHelp := flag.Bool("h", false, "show this help screen")
 	flag.Parse()
 
@@ -48,6 +49,10 @@ func main() {
 
 	// by default, read server list from stdin
 	ServerListFile := os.Stdin
+
+    if *OptAnsible {
+        *OptFile = "/etc/ansible/hosts"
+    }
 
 	// read server names from file if a file name is supplied
 	if *OptFile != "" {
