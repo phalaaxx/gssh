@@ -38,19 +38,21 @@ func (s *SshGroup) Wait(n int) {
 
 // clear progress line
 func (s *SshGroup) ClearProgress() {
-	fmt.Fprintf(os.Stderr, "\r%*s\r",
-		41,
-		" ")
+	if _, err := fmt.Fprintf(os.Stderr, "\r%*s\r", 41, " "); err != nil {
+		log.Println(err)
+	}
 }
 
 // print progress line
 func (s *SshGroup) PrintProgress() {
-	fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
+	if _, err := fmt.Fprintf(os.Stderr, "[%d/%d] %.2f%% complete, %d active",
 		s.Complete,
 		s.Total,
 		float64(s.Complete)*float64(100)/float64(s.Total),
-		s.Active)
-	os.Stderr.Sync()
+		s.Active,
+	); err != nil {
+		log.Println(err)
+	}
 }
 
 // clear and reprint progress line
@@ -104,7 +106,9 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string, NoSt
 	Stderr := bufio.NewReader(stderr)
 
 	// run the command
-	cmd.Start()
+	if err := cmd.Start(); err != nil {
+		log.Println(err)
+	}
 
 	var w sync.WaitGroup
 	w.Add(2)
@@ -125,13 +129,16 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string, NoSt
 				s.ClearProgress()
 			}
 			// print output
-			fmt.Fprintf(
+			if _, err = fmt.Fprintf(
 				OutDev,
 				Template,
 				Padding,
 				" ",
 				ssh.Address,
-				line)
+				line,
+			); err != nil {
+				log.Println(err)
+			}
 			if PrintToTerminal {
 				s.PrintProgress()
 			}
@@ -145,5 +152,9 @@ func (s *SshGroup) Command(ssh *SshServer, AddrPadding int, Command string, NoSt
 	go PrintOutput(os.Stderr, Stderr, ErrTemplate, &ssh.StderrLineCount)
 
 	w.Wait()
-	cmd.Wait()
+	if err := cmd.Wait(); err != nil {
+		if _, ok := err.(*exec.ExitError); !ok {
+			log.Println(err)
+		}
+	}
 }

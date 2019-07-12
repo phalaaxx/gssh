@@ -20,7 +20,7 @@ func main() {
 	OptSection := flag.String("s", "", "name of ini section containing servers list")
 	OptProcesses := flag.Int("p", 500, "number of parallel ssh processes (default: 500)")
 	OptNoStrict := flag.Bool("n", false, "don't use strict ssh fingerprint checking")
-    OptAnsible := flag.Bool("a", false, "Read ansible hosts file at /etc/ansible/hosts")
+	OptAnsible := flag.Bool("a", false, "Read ansible hosts file at /etc/ansible/hosts")
 	OptHelp := flag.Bool("h", false, "show this help screen")
 	flag.Parse()
 
@@ -50,9 +50,9 @@ func main() {
 	// by default, read server list from stdin
 	ServerListFile := os.Stdin
 
-    if *OptAnsible {
-        *OptFile = "/etc/ansible/hosts"
-    }
+	if *OptAnsible {
+		*OptFile = "/etc/ansible/hosts"
+	}
 
 	// read server names from file if a file name is supplied
 	if *OptFile != "" {
@@ -60,7 +60,12 @@ func main() {
 		if err != nil {
 			log.Fatal(fmt.Sprintf("ServerListFile: Error: %v", err))
 		}
-		defer ServerListFile.Close()
+		ServerListFileClose := func() {
+			if err := ServerListFile.Close(); err != nil {
+				log.Println(err)
+			}
+		}
+		defer ServerListFileClose()
 	}
 	AddrPadding, servers := LoadServerList(ServerListFile)
 
@@ -80,12 +85,17 @@ func main() {
 	}
 
 	// print heading text
-	fmt.Fprintln(os.Stderr, "gssh - group ssh, ver. 1.2")
-	fmt.Fprintln(os.Stderr, "(c)2014-2018 Bozhin Zafirov <bozhin@deck17.com>")
-	fmt.Fprintln(os.Stderr)
-	fmt.Fprintf(os.Stderr, "  [*] read (%d) hosts from the list\n", group.Total)
-	fmt.Fprintf(os.Stderr, "  [*] executing '%s' as user '%s'\n", OptCommand, *OptUser)
-	fmt.Fprintf(os.Stderr, "  [*] spawning %d parallel ssh sessions\n\n", *OptProcesses)
+	TemplateString := `gssh - group ssh, ver. 1.3
+(c)2014-2019 Bozhin Zafirov <bozhin@deck17.com>
+
+  [*] read (%d) hosts from the list
+  [*] executing '%s' as user '%s'
+  [*] spawning %d parallel ssh sessions
+
+`
+	if _, err = fmt.Fprintf(os.Stderr, TemplateString, group.Total, OptCommand, *OptUser, *OptProcesses); err != nil {
+		log.Println(err)
+	}
 
 	// spawn ssh processes
 	for section := range servers {
@@ -141,9 +151,8 @@ func main() {
 		}
 	}
 
-	fmt.Fprintln(os.Stderr)
-	fmt.Fprintf(os.Stderr,
-		"  Done. Processed: %d / Output: %d (%d) / "+
+	_, err = fmt.Fprintf(os.Stderr,
+		"\n  Done. Processed: %d / Output: %d (%d) / "+
 			"\033[01;32m->\033[0m %d (%d) / \033[01;31m=>\033[0m %d (%d)\n",
 		group.Total,
 		AllServersCount,
@@ -153,4 +162,7 @@ func main() {
 		StderrServersCount,
 		StderrLinesCount,
 	)
+	if err != nil {
+		log.Println(err)
+	}
 }
