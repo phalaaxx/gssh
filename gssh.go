@@ -86,7 +86,7 @@ func main() {
 
 	// print heading text
 	TemplateString := `gssh - group ssh, ver. 1.3
-(c)2014-2019 Bozhin Zafirov <bozhin@deck17.com>
+(c)2014-2020 Bozhin Zafirov <bozhin@deck17.com>
 
   [*] read (%d) hosts from the list
   [*] executing '%s' as user '%s'
