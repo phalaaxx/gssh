@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"sort"
 	"strings"
 )
 
 /* ServerList defines a type for list of servers with sections */
-type ServerList map[string][]string
+type ServerList map[string]sort.StringSlice
 
 /* Len returns the number of servers in the specified section */
 func (s ServerList) Len(sectionName string) (count int) {
@@ -22,14 +23,16 @@ func (s ServerList) Len(sectionName string) (count int) {
 
 /* LoadServerList loads a list of server addresses from a file */
 func LoadServerList(file *os.File) (AddrPadding int, servers ServerList) {
-	servers = make(map[string][]string)
-	AppendUnique := func(sectionList []string, Server string) []string {
-		for _, S := range sectionList {
-			if S == Server {
-				return sectionList
-			}
+	servers = make(map[string]sort.StringSlice)
+	AppendUnique := func(sectionList sort.StringSlice, Server string) []string {
+		if !sort.StringsAreSorted(sectionList) {
+			sort.Strings(sectionList)
 		}
-		return append(sectionList, Server)
+		idx := sort.SearchStrings(sectionList, Server)
+		if idx < len(sectionList) && sectionList[idx] == Server {
+			return sectionList
+		}
+		return append(sectionList[:idx], append(sort.StringSlice{Server}, sectionList[idx:]...)...)
 	}
 	Reader := bufio.NewReader(file)
 	section := "main"
