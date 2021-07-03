@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+/* Global gssh version string */
+var GsshVersion = `gssh - group ssh, ver. 1.3
+(c)2014-2020 Bozhin Zafirov <bozhin@deck17.com>
+`
+
 // main program
 func main() {
 	// local variables
@@ -21,12 +26,21 @@ func main() {
 	OptProcesses := flag.Int("p", 500, "number of parallel ssh processes (default: 500)")
 	OptNoStrict := flag.Bool("n", false, "don't use strict ssh fingerprint checking")
 	OptAnsible := flag.Bool("a", false, "Read ansible hosts file at /etc/ansible/hosts")
+	OptVersion := flag.Bool("v", false, "Privt version and exit")
 	OptHelp := flag.Bool("h", false, "show this help screen")
 	flag.Parse()
 
 	// show help screen and exit in case of -h or --help option
 	if *OptHelp {
 		flag.Usage()
+		os.Exit(1)
+	}
+
+	/*  */
+	if *OptVersion {
+		if _, err = fmt.Fprintf(os.Stderr, GsshVersion); err != nil {
+			log.Fatal(err)
+		}
 		os.Exit(1)
 	}
 
@@ -85,15 +99,13 @@ func main() {
 	}
 
 	// print heading text
-	TemplateString := `gssh - group ssh, ver. 1.3
-(c)2014-2020 Bozhin Zafirov <bozhin@deck17.com>
-
+	TemplateString := `%s
   [*] read (%d) hosts from the list
   [*] executing '%s' as user '%s'
   [*] spawning %d parallel ssh sessions
 
 `
-	if _, err = fmt.Fprintf(os.Stderr, TemplateString, group.Total, OptCommand, *OptUser, *OptProcesses); err != nil {
+	if _, err = fmt.Fprintf(os.Stderr, TemplateString, GsshVersion, group.Total, OptCommand, *OptUser, *OptProcesses); err != nil {
 		log.Println(err)
 	}
 
