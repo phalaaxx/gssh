@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+// ssh server information
+type SshServer struct {
+	Username        string
+	Address         string
+	StdoutLineCount int
+	StderrLineCount int
+}
+
 // ssh client group
 type SshGroup struct {
 	// mutex
