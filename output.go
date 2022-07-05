@@ -36,7 +36,8 @@ func OutputMonitor(total int, padding int, srv *sync.WaitGroup) (chan Message, c
 	ErrTemplate := "%*s%s \033[01;31m=>\033[0m %s"
 
 	/* disable colored output in case output is redirected */
-	if !IsTerminal(os.Stdout.Fd()) {
+	if !PrintToTerminal {
+		PrintToTerminal = false
 		OutTemplate = "%*s%s -> %s"
 	}
 	if !IsTerminal(os.Stderr.Fd()) {
