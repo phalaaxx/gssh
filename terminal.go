@@ -1,17 +1,13 @@
 package main
 
 import (
-	"syscall"
-	"unsafe"
+	"os"
 )
 
-// determine if output device is terminal
-func IsTerminal(fd uintptr) bool {
-	var term syscall.Termios
-	_, _, err := syscall.Syscall(
-		syscall.SYS_IOCTL,
-		uintptr(fd),
-		uintptr(syscall.TCGETS),
-		uintptr(unsafe.Pointer(&term)))
-	return err == 0
+/* IsTerminal returns true if output device is terminal */
+func IsTerminal(f *os.File) bool {
+	if fileInfo, _ := f.Stat(); (fileInfo.Mode() & os.ModeCharDevice) != 0 {
+		return true
+	}
+	return false
 }

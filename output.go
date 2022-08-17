@@ -29,7 +29,7 @@ func OutputMonitor(total int, padding int, srv *sync.WaitGroup) (chan Message, c
 	StdoutStats := make(OutputStats)
 	StderrStats := make(OutputStats)
 
-	PrintToTerminal := IsTerminal(os.Stdout.Fd())
+	PrintToTerminal := IsTerminal(os.Stdout)
 
 	/* initialize output template strings */
 	OutTemplate := "%*s%s \033[01;32m->\033[0m %s"
@@ -40,7 +40,7 @@ func OutputMonitor(total int, padding int, srv *sync.WaitGroup) (chan Message, c
 		PrintToTerminal = false
 		OutTemplate = "%*s%s -> %s"
 	}
-	if !IsTerminal(os.Stderr.Fd()) {
+	if !IsTerminal(os.Stderr) {
 		ErrTemplate = "%*s%s => %s"
 	}
 
