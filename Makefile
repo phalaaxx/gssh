@@ -2,11 +2,11 @@ PREFIX = /usr/local
 BINDIR = $(PREFIX)/bin
 BINPREFIX =
 INSTALL = /usr/bin/install -c
-SRCS = gssh.go gssh_test.go serverlist.go sshgroup.go sshserver.go terminal.go
-GCCGO = gccgo
+SRCS = gssh.go output.go serverlist.go sshgroup.go terminal.go
+GO = go
 
 gssh: $(SRCS)
-	$(GCCGO) -o $@ $(SRCS)
+	$(GO) build -o $@ $(SRCS)
 
 all: gssh
 

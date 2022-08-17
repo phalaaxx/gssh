@@ -19,7 +19,7 @@ To build gssh with official golang compiler, use the following command:
 	go build
 	./gssh -h
 
-In case you want to build gssh against gccgo compiler, the sample makefile can be used:
+Another option is to use make to build with the sample makefile:
 
 	make
 	make install PREFIX=/usr
